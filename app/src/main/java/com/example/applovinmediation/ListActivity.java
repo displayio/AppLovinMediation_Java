@@ -51,7 +51,7 @@ public class ListActivity extends AppCompatActivity {
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 if (viewType != 20) {
                     View view = new View(ListActivity.this);
-                    view.setBackgroundColor(Color.BLUE);
+                    view.setBackgroundColor(Color.LTGRAY);
                     RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
                     lp.setMargins(10, 10, 10, 10);
                     view.setLayoutParams(lp);
@@ -84,7 +84,7 @@ public class ListActivity extends AppCompatActivity {
         MaxAdView adView = new MaxAdView("a7890d10e5dc7459", this);
         adView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
+                800));
         adView.setGravity(Gravity.CENTER);
         adView.setListener(new MaxAdViewAdListener() {
             @Override
@@ -102,6 +102,9 @@ public class ListActivity extends AppCompatActivity {
 
                 //necessary for displaying IS
                 if (Objects.equals(ad.getNetworkName(), DisplayIO)){
+                    adView.setLayoutParams(new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT));
                     View view = adView.findViewById(Integer.parseInt(placementID));
                     view.setLayoutParams(new RelativeLayout.LayoutParams(
                             RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.MATCH_PARENT));
