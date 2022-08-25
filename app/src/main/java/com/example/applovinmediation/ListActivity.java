@@ -128,7 +128,7 @@ public class ListActivity extends AppCompatActivity {
 
             @Override
             public void onAdLoadFailed(String adUnitId, MaxError error) {
-
+                Log.e(MainActivity.TAG, "onAdLoadFailed  " + error.getMessage());
             }
 
             @Override

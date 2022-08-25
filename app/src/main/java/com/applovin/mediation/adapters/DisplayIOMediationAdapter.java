@@ -15,7 +15,6 @@ import com.applovin.mediation.adapter.listeners.MaxAdViewAdapterListener;
 import com.applovin.mediation.adapter.listeners.MaxInterstitialAdapterListener;
 import com.applovin.mediation.adapter.parameters.MaxAdapterInitializationParameters;
 import com.applovin.mediation.adapter.parameters.MaxAdapterResponseParameters;
-import com.applovin.mediation.adapters.MediationAdapterBase;
 import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkUtils;
 import com.brandio.ads.AdProvider;
@@ -172,6 +171,11 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         public void onClosed(Ad ad) {
                             maxInterstitialAdapterListener.onInterstitialAdHidden();
                         }
+
+                        @Override
+                        public void onAdCompleted(Ad ad) {
+
+                        }
                     }
             );
             interstitialDIOAd.showAd(activity);
@@ -232,13 +236,41 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                     ((InterscrollerPlacement) placement).getContainer(activity, adRequest.getId(), null);
                             try {
                                 interscrollerContainer.bindTo((ViewGroup) adView);
-                            } catch ( Exception e) {
+                            } catch (Exception e) {
                                 inlineAdListener.onAdViewAdLoadFailed(MaxAdapterError.INTERNAL_ERROR);
                                 e.printStackTrace();
                             }
                         }
 
                         if (adView != null) {
+                            ad.setEventListener(
+                                    new AdEventListener() {
+                                        @Override
+                                        public void onShown(Ad ad) {
+                                            inlineAdListener.onAdViewAdDisplayed();
+                                        }
+
+                                        @Override
+                                        public void onFailedToShow(Ad ad) {
+                                            inlineAdListener.onAdViewAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
+                                        }
+
+                                        @Override
+                                        public void onClicked(Ad ad) {
+                                            inlineAdListener.onAdViewAdClicked();
+                                        }
+
+                                        @Override
+                                        public void onClosed(Ad ad) {
+                                            inlineAdListener.onAdViewAdHidden();
+                                        }
+
+                                        @Override
+                                        public void onAdCompleted(Ad ad) {
+
+                                        }
+                                    }
+                            );
                             inlineAdListener.onAdViewAdLoaded(adView);
                         } else {
                             inlineAdListener.onAdViewAdLoadFailed(MaxAdapterError.NO_FILL);
@@ -255,7 +287,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                 try {
                     adProvider.loadAd();
                 } catch (DioSdkException e) {
-                    Log.e(TAG, "No Ads for placement " + plcID);
+                    Log.e(TAG, "Failed to load ad for placement " + plcID);
                     notifyError(inlineAdListener, interstitialListener);
                 }
             }
