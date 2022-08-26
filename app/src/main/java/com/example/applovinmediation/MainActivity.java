@@ -113,67 +113,6 @@ public class MainActivity extends AppCompatActivity {
         adView.loadAd();
     }
 
-//    private void createInterstitialdAd() {
-//        String plcID = "5197";
-//        final Placement placement;
-//        try {
-//            placement = Controller.getInstance().getPlacement(plcID);
-//        } catch (DioSdkException e) {
-//            Log.e(TAG, "Unexpected error, no placement with ID " + plcID);
-//            return;
-//        }
-//        AdRequest adRequest = placement.newAdRequest();
-//        adRequest.setAdRequestListener(new AdRequestListener() {
-//            @Override
-//            public void onAdReceived(AdProvider adProvider) {
-//
-//                adProvider.setAdLoadListener(new AdLoadListener() {
-//                    @Override
-//                    public void onLoaded(Ad ad) {
-//                        showToast("DIO AD LOADED!");
-//
-//                        ad.setEventListener(
-//                                new AdEventListener() {
-//                                    @Override
-//                                    public void onShown(Ad ad) {
-//                                    }
-//
-//                                    @Override
-//                                    public void onFailedToShow(Ad ad) {
-//                                    }
-//
-//                                    @Override
-//                                    public void onClicked(Ad ad) {
-//                                    }
-//
-//                                    @Override
-//                                    public void onClosed(Ad ad) {
-//                                    }
-//                                }
-//                        );
-//                        ad.showAd(MainActivity.this);
-//                    }
-//
-//                    @Override
-//                    public void onFailedToLoad(DIOError dioError) {
-//                        Log.e(TAG, "Failed to load ad for placement " + plcID);
-//                    }
-//                });
-//                try {
-//                    adProvider.loadAd();
-//                } catch (DioSdkException e) {
-//                    Log.e(TAG, "Failed to load ad for placement " + plcID);
-//                }
-//            }
-//
-//            @Override
-//            public void onNoAds(DIOError dioError) {
-//                Log.e(TAG, "No Ads for placement " + plcID);
-//            }
-//        });
-//        adRequest.requestAd();
-//    }
-
     private void createInterstitialdAd() {
         MaxInterstitialAd interstitialAd = new MaxInterstitialAd("879e5078a8df075e", this);
         interstitialAd.setListener(new MaxAdListener() {
