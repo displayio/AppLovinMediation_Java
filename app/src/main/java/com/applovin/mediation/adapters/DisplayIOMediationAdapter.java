@@ -50,6 +50,10 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     public void initialize(MaxAdapterInitializationParameters maxAdapterInitializationParameters,
                            Activity activity,
                            OnCompletionListener onCompletionListener) {
+        Log.e(TAG,  "maxAdapterInitializationParameters.getServerParameters().getString(\"app_id\"):");
+        Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().getString("app_id"));
+        Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().toString());
+
         if (!Controller.getInstance().isInitialized()) {
             onCompletionListener.onCompletion(
                     InitializationStatus.INITIALIZING,
