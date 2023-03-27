@@ -53,6 +53,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
         Log.e(TAG,  "maxAdapterInitializationParameters.getServerParameters().getString(\"app_id\"):");
         Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().getString("app_id"));
         Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().toString());
+        String appID = maxAdapterInitializationParameters.getServerParameters().getString("app_id");
 
         if (!Controller.getInstance().isInitialized()) {
             onCompletionListener.onCompletion(
@@ -63,7 +64,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             AppLovinSdkUtils.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Controller.getInstance().init(activity, null, APP_ID, new SdkInitListener() {
+                    Controller.getInstance().init(activity, null, appID, new SdkInitListener() {
                         @Override
                         public void onInit() {
                             onCompletionListener.onCompletion(
