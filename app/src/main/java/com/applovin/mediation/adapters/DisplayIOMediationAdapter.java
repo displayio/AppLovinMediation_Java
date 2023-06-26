@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.applovin.mediation.MaxAdFormat;
 import com.applovin.mediation.adapter.MaxAdViewAdapter;
@@ -39,8 +38,11 @@ import com.brandio.ads.listeners.SdkInitListener;
 public class DisplayIOMediationAdapter extends MediationAdapterBase implements MaxAdViewAdapter,
         MaxInterstitialAdapter {
     public static final String TAG = "DioAdapter";
-//    private static final String APP_ID = "7729";
     private Ad interstitialDIOAd;
+    private Ad bannerDIOAd;
+    private Ad mrectDIOAd;
+    private Ad infeedDIOAd;
+    private Ad intersrollerDIOAd;
 
     public DisplayIOMediationAdapter(AppLovinSdk appLovinSdk) {
         super(appLovinSdk);
@@ -69,7 +71,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                     InitializationStatus.INITIALIZED_SUCCESS,
                                     null
                             );
-                            Log.d(TAG, "DIO Initialized for APP ID: " + appID );
+                            Log.d(TAG, "DIO Initialized for APP ID: " + appID);
                         }
 
                         @Override
@@ -104,7 +106,25 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
     @Override
     public void onDestroy() {
-        Controller.getInstance().onDestroy();
+        if (interstitialDIOAd != null && interstitialDIOAd.isImpressed()) {
+            interstitialDIOAd = null; // interstitial ads closed automatically
+        }
+        if (bannerDIOAd != null && bannerDIOAd.isImpressed()) {
+            bannerDIOAd.close();
+            bannerDIOAd = null;
+        }
+        if (mrectDIOAd != null && mrectDIOAd.isImpressed()) {
+            mrectDIOAd.close();
+            mrectDIOAd = null;
+        }
+        if (infeedDIOAd != null && infeedDIOAd.isImpressed()) {
+            infeedDIOAd.close();
+            infeedDIOAd = null;
+        }
+        if (intersrollerDIOAd != null && intersrollerDIOAd.isImpressed()) {
+            intersrollerDIOAd.close();
+            intersrollerDIOAd = null;
+        }
     }
 
     //inline ads
@@ -137,9 +157,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             maxInterstitialAdapterListener.onInterstitialAdLoadFailed(MaxAdapterError.UNSPECIFIED);
             return;
         }
-
         String plcID = maxAdapterResponseParameters.getThirdPartyAdPlacementId();
-
         requestAndLoadDisplayIOAd(
                 plcID,
                 null,
@@ -182,7 +200,10 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         }
                     }
             );
+
             interstitialDIOAd.showAd(activity);
+        } else {
+            maxInterstitialAdapterListener.onInterstitialAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
         }
     }
 
@@ -219,21 +240,25 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                         View adView = null;
                         if (placement instanceof BannerPlacement) {
+                            bannerDIOAd = ad;
                             adView = ((BannerPlacement) placement).getBanner(
                                     activity,
                                     adRequest.getId()
                             );
                         } else if (placement instanceof MediumRectanglePlacement) {
+                            mrectDIOAd = ad;
                             adView = ((MediumRectanglePlacement) placement).getMediumRectangle(
                                     activity,
                                     adRequest.getId()
                             );
                         } else if (placement instanceof InfeedPlacement) {
+                            infeedDIOAd = ad;
                             adView = InfeedAdContainer.getAdView(activity);
                             InfeedAdContainer infeedContainer =
                                     ((InfeedPlacement) placement).getInfeedContainer(activity, adRequest.getId());
                             infeedContainer.bindTo((ViewGroup) adView);
                         } else if (placement instanceof InterscrollerPlacement) {
+                            intersrollerDIOAd = ad;
                             adView = InterscrollerContainer.getAdView(activity);
                             adView.setId(Integer.parseInt(plcID));
                             InterscrollerContainer interscrollerContainer =

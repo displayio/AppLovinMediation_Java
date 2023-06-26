@@ -24,6 +24,7 @@ import com.applovin.sdk.AppLovinSdkConfiguration;
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
     private MaxAdView adView;
+    private MaxInterstitialAd interstitialAd;
     private ViewGroup rootAdView;
 
     enum AdUnitType {
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "AppLovin Initialized!");
                 MainActivity.this.showToast("AppLovin Initialized!");
                 setupButtons();
+                interstitialAd = new MaxInterstitialAd("879e5078a8df075e", MainActivity.this);
             }
         });
     }
@@ -75,12 +77,23 @@ public class MainActivity extends AppCompatActivity {
             createAd(AdUnitType.INTERSCROLLER);
         });
 
+        findViewById(R.id.button_show_interstitial).setOnClickListener(view -> {
+            showInterstitial();
+        });
+
         findViewById(R.id.button_banner).setEnabled(true);
         findViewById(R.id.button_medium_rect).setEnabled(true);
         findViewById(R.id.button_infeed).setEnabled(true);
         findViewById(R.id.button_interstitial).setEnabled(true);
         findViewById(R.id.button_interscroller).setEnabled(true);
 
+    }
+
+    private void showInterstitial() {
+        if (interstitialAd.isReady()) {
+            interstitialAd.showAd();
+            findViewById(R.id.button_show_interstitial).setEnabled(false);
+        }
     }
 
     private void createAd(AdUnitType adUnitType) {
@@ -95,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 adView = new MaxAdView("f850d5aa98acf91b", this);
                 break;
             case INTERSTITIAL:
-                createInterstitialdAd();
+                loadInterstitialdAd();
                 return;
             case INTERSCROLLER:
                 createInterscrollerAd();
@@ -106,22 +119,21 @@ public class MainActivity extends AppCompatActivity {
         adView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 800));
         adView.setGravity(Gravity.CENTER);
         adView.setBackgroundColor(Color.WHITE);
-
+//        adView.setExtraParameter( "allow_pause_auto_refresh_immediately", "true" );
+//        adView.stopAutoRefresh();
         rootAdView.removeAllViews();
         rootAdView.addView(adView);
 
         adView.loadAd();
     }
 
-    private void createInterstitialdAd() {
-        MaxInterstitialAd interstitialAd = new MaxInterstitialAd("879e5078a8df075e", this);
+    private void loadInterstitialdAd() {
+
         interstitialAd.setListener(new MaxAdListener() {
             @Override
             public void onAdLoaded(MaxAd ad) {
                 showToast("MaxInterstitialAd LOADED!");
-                if ( interstitialAd.isReady()) {
-                    interstitialAd.showAd();
-                }
+                findViewById(R.id.button_show_interstitial).setEnabled(true);
             }
 
             @Override

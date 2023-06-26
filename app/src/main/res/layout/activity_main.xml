@@ -49,12 +49,26 @@
                 android:text="@string/infeed"
                 android:enabled="false"/>
 
-            <Button
-                android:id="@+id/button_interstitial"
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/interstitial"
-                android:enabled="false"/>
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/button_interstitial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interstitial"
+                    android:layout_marginEnd="10dp"
+                    android:enabled="false"/>
+
+                <Button
+                    android:id="@+id/button_show_interstitial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show"
+                    android:enabled="false"/>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
             <Button
                 android:id="@+id/button_interscroller"
                 android:layout_width="wrap_content"
