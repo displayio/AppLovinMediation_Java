@@ -39,7 +39,7 @@ import com.brandio.ads.listeners.SdkInitListener;
 public class DisplayIOMediationAdapter extends MediationAdapterBase implements MaxAdViewAdapter,
         MaxInterstitialAdapter {
     public static final String TAG = "DioAdapter";
-    private static final String APP_ID = "7729";
+//    private static final String APP_ID = "7729";
     private Ad interstitialDIOAd;
 
     public DisplayIOMediationAdapter(AppLovinSdk appLovinSdk) {
@@ -50,9 +50,6 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     public void initialize(MaxAdapterInitializationParameters maxAdapterInitializationParameters,
                            Activity activity,
                            OnCompletionListener onCompletionListener) {
-        Log.e(TAG,  "maxAdapterInitializationParameters.getServerParameters().getString(\"app_id\"):");
-        Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().getString("app_id"));
-        Log.e(TAG,  maxAdapterInitializationParameters.getServerParameters().toString());
         String appID = maxAdapterInitializationParameters.getServerParameters().getString("app_id");
 
         if (!Controller.getInstance().isInitialized()) {
@@ -64,6 +61,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             AppLovinSdkUtils.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Controller.getInstance().setMediationPlatform(Controller.MediationPlatform.APPLOVIN);
                     Controller.getInstance().init(activity, null, appID, new SdkInitListener() {
                         @Override
                         public void onInit() {
@@ -71,7 +69,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                     InitializationStatus.INITIALIZED_SUCCESS,
                                     null
                             );
-                            Toast.makeText(activity, "DIO Initialized!", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "DIO Initialized for APP ID: " + appID );
                         }
 
                         @Override
@@ -80,6 +78,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                     InitializationStatus.INITIALIZED_FAILURE,
                                     null
                             );
+                            Log.e(TAG, "Failed to initialize DIO SDK");
                         }
                     });
                 }
@@ -199,7 +198,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             placement = Controller.getInstance().getPlacement(plcID);
         } catch (DioSdkException e) {
             Log.e(TAG, "Unexpected error, no placement with ID " + plcID);
-            notifyError(inlineAdListener, interstitialListener);
+            notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
             return;
         }
         AdRequest adRequest = placement.newAdRequest();
@@ -242,7 +241,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                             try {
                                 interscrollerContainer.bindTo((ViewGroup) adView);
                             } catch (Exception e) {
-                                inlineAdListener.onAdViewAdLoadFailed(MaxAdapterError.INTERNAL_ERROR);
+                                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
                                 e.printStackTrace();
                             }
                         }
@@ -257,7 +256,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                                         @Override
                                         public void onFailedToShow(Ad ad) {
-                                            inlineAdListener.onAdViewAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
+                                            notifyError(inlineAdListener, interstitialListener, MaxAdapterError.AD_DISPLAY_FAILED);
                                         }
 
                                         @Override
@@ -278,7 +277,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                             );
                             inlineAdListener.onAdViewAdLoaded(adView);
                         } else {
-                            inlineAdListener.onAdViewAdLoadFailed(MaxAdapterError.NO_FILL);
+                            notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
                         }
 
                     }
@@ -286,33 +285,34 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                     @Override
                     public void onFailedToLoad(DIOError dioError) {
                         Log.e(TAG, "Failed to load ad for placement " + plcID);
-                        notifyError(inlineAdListener, interstitialListener);
+                        notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
                     }
                 });
                 try {
                     adProvider.loadAd();
                 } catch (DioSdkException e) {
                     Log.e(TAG, "Failed to load ad for placement " + plcID);
-                    notifyError(inlineAdListener, interstitialListener);
+                    notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
                 }
             }
 
             @Override
             public void onNoAds(DIOError dioError) {
                 Log.e(TAG, "No Ads for placement " + plcID);
-                notifyError(inlineAdListener, interstitialListener);
+                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
             }
         });
         adRequest.requestAd();
     }
 
     private void notifyError(MaxAdViewAdapterListener inlineAdListener,
-                             MaxInterstitialAdapterListener interstitialListener) {
+                             MaxInterstitialAdapterListener interstitialListener,
+                             MaxAdapterError error) {
         if (inlineAdListener != null) {
-            inlineAdListener.onAdViewAdLoadFailed(MaxAdapterError.UNSPECIFIED);
+            inlineAdListener.onAdViewAdLoadFailed(error);
         }
         if (interstitialListener != null) {
-            interstitialListener.onInterstitialAdLoadFailed(MaxAdapterError.UNSPECIFIED);
+            interstitialListener.onInterstitialAdLoadFailed(error);
         }
     }
 

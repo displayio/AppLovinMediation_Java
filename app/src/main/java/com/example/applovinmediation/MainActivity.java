@@ -119,7 +119,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded(MaxAd ad) {
                 showToast("MaxInterstitialAd LOADED!");
-                interstitialAd.showAd();
+                if ( interstitialAd.isReady()) {
+                    interstitialAd.showAd();
+                }
             }
 
             @Override
@@ -139,12 +141,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAdLoadFailed(String adUnitId, MaxError error) {
-
+                Log.e(TAG,"MaxInterstitialAd onAdLoadFailed!");
             }
 
             @Override
             public void onAdDisplayFailed(MaxAd ad, MaxError error) {
-
+                Log.e(TAG,"MaxInterstitialAd onAdDisplayFailed!");
             }
         });
         interstitialAd.loadAd();
