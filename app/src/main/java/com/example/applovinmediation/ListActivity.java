@@ -35,15 +35,6 @@ public class ListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list);
         View adView = createAd();
         RecyclerView recyclerView = findViewById(R.id.rv);
-
-        //necessary for displaying IS
-        try {
-            InterscrollerPlacement placement = (InterscrollerPlacement) Controller.getInstance().getPlacement(placementID);
-            placement.setParentRecyclerView(recyclerView);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new RecyclerView.Adapter() {
             @NonNull
