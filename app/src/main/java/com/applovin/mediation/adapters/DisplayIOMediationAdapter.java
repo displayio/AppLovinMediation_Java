@@ -196,7 +196,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                         @Override
                         public void onAdCompleted(Ad ad) {
-
+                            maxInterstitialAdapterListener.onInterstitialAdHidden();
                         }
                     }
             );
