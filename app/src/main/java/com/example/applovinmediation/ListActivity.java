@@ -19,14 +19,14 @@ import com.applovin.mediation.MaxAd;
 import com.applovin.mediation.MaxAdViewAdListener;
 import com.applovin.mediation.MaxError;
 import com.applovin.mediation.ads.MaxAdView;
-import com.brandio.ads.Controller;
-import com.brandio.ads.InterscrollerPlacement;
 
 import java.util.Objects;
 
 public class ListActivity extends AppCompatActivity {
-    static final String placementID = "7022";
+//    static final String placementID = "7022";
     static final String DisplayIO = "DisplayIO";
+    private static final String INTERSCROLLER = "f36b84f04ea1ba27";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class ListActivity extends AppCompatActivity {
     }
 
     private MaxAdView createAd() {
-        MaxAdView adView = new MaxAdView("a7890d10e5dc7459", this);
+        MaxAdView adView = new MaxAdView(INTERSCROLLER, this);
         adView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 800));
@@ -96,6 +96,7 @@ public class ListActivity extends AppCompatActivity {
                     adView.setLayoutParams(new FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT,
                             FrameLayout.LayoutParams.MATCH_PARENT));
+                    String placementID = ad.getNetworkPlacement();
                     View view = adView.findViewById(Integer.parseInt(placementID));
                     view.setLayoutParams(new RelativeLayout.LayoutParams(
                             RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.MATCH_PARENT));
@@ -127,6 +128,7 @@ public class ListActivity extends AppCompatActivity {
 
             }
         });
+        MainActivity.addCustomAdRequestData(null, adView);
         adView.loadAd();
         return adView;
     }

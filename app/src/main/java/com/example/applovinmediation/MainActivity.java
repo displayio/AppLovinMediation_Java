@@ -1,5 +1,7 @@
 package com.example.applovinmediation;
 
+import static com.applovin.mediation.adapters.DisplayIOMediationAdapter.DIO_AD_REQUEST;
+
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -20,12 +22,18 @@ import com.applovin.mediation.ads.MaxInterstitialAd;
 import com.applovin.sdk.AppLovinMediationProvider;
 import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
+import com.brandio.ads.request.AdRequest;
+import com.brandio.ads.request.AdRequestBuilder;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
     private MaxAdView adView;
     private MaxInterstitialAd interstitialAd;
     private ViewGroup rootAdView;
+    private static final String INTERSTITIAL = "09d80a95e7f64732";
+    private static final String BANNER = "b1d6cd3a7afb3c18";
+    private static final String MEDIUMRECT = "84aa2c413758352d";
+    private static final String INFEED = "ade4738d7fdfe241";
 
     enum AdUnitType {
         BANNER,
@@ -54,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "AppLovin Initialized!");
                 MainActivity.this.showToast("AppLovin Initialized!");
                 setupButtons();
-                interstitialAd = new MaxInterstitialAd("879e5078a8df075e", MainActivity.this);
             }
         });
     }
@@ -99,13 +106,13 @@ public class MainActivity extends AppCompatActivity {
     private void createAd(AdUnitType adUnitType) {
         switch (adUnitType) {
             case BANNER:
-                adView = new MaxAdView("47dca8ad50135955", this);
+                adView = new MaxAdView(BANNER, this);
                 break;
             case MEDIUMRECT:
-                adView = new MaxAdView("443e36ed302312ce", this);
+                adView = new MaxAdView(MEDIUMRECT, this);
                 break;
             case INFEED:
-                adView = new MaxAdView("f850d5aa98acf91b", this);
+                adView = new MaxAdView(INFEED, this);
                 break;
             case INTERSTITIAL:
                 loadInterstitialdAd();
@@ -124,11 +131,12 @@ public class MainActivity extends AppCompatActivity {
         rootAdView.removeAllViews();
         rootAdView.addView(adView);
 
+        addCustomAdRequestData(null, adView);
         adView.loadAd();
     }
 
     private void loadInterstitialdAd() {
-
+        interstitialAd = new MaxInterstitialAd(INTERSTITIAL, MainActivity.this);
         interstitialAd.setListener(new MaxAdListener() {
             @Override
             public void onAdLoaded(MaxAd ad) {
@@ -153,14 +161,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAdLoadFailed(String adUnitId, MaxError error) {
-                Log.e(TAG,"MaxInterstitialAd onAdLoadFailed!");
+                Log.e(TAG, "MaxInterstitialAd onAdLoadFailed!");
             }
 
             @Override
             public void onAdDisplayFailed(MaxAd ad, MaxError error) {
-                Log.e(TAG,"MaxInterstitialAd onAdDisplayFailed!");
+                Log.e(TAG, "MaxInterstitialAd onAdDisplayFailed!");
             }
         });
+//        addCustomAdRequestData(interstitialAd, null);
         interstitialAd.loadAd();
     }
 
@@ -209,5 +218,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    // here is the example how to add customized ad request to Display.io network
+    protected static void addCustomAdRequestData(MaxInterstitialAd interstitialAd, MaxAdView maxAdView) {
+        AdRequest adRequest = new AdRequestBuilder(new AdRequest())
+                .setBidFloor(55.8)
+                .setUserId("USER_123")
+                .build();
+        if (interstitialAd != null) {
+            interstitialAd.setLocalExtraParameter(DIO_AD_REQUEST, adRequest);
+        }
+        if (maxAdView != null) {
+            maxAdView.setLocalExtraParameter(DIO_AD_REQUEST, adRequest);
+        }
     }
 }
