@@ -233,13 +233,15 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
         }
 
         AdRequest adRequest = null;
+        boolean isUsed = false;
 
         try {
             adRequest = (AdRequest) maxAdapterResponseParameters.getLocalExtraParameters().get(DIO_AD_REQUEST);
+            isUsed = placement.getAdRequestById(adRequest.getId()) != null;
         } catch (Exception ignored) {
         }
 
-        if (adRequest != null) {
+        if (adRequest != null && !isUsed) {
             adRequest = new AdRequestBuilder(adRequest)
                     .setMediationPlatform(MediationPlatform.APPLOVIN).build();
             placement.addAdRequest(adRequest);

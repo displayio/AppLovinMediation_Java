@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AppLovinJava"
 include ':app'
+include ':applovin-adapter'
