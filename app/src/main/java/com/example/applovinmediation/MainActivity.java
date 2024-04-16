@@ -27,6 +27,8 @@ import com.brandio.ads.request.AdRequestBuilder;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
+    public static final String AD_UNIT_ID = "AdUnitId";
+    public static final String AD_UNIT_TYPE = "AdUnitType";
     private MaxAdView adView;
     private MaxInterstitialAd interstitialAd;
     private ViewGroup rootAdView;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String BANNER = "b1d6cd3a7afb3c18";
     private static final String MEDIUMRECT = "84aa2c413758352d";
     private static final String INFEED = "ade4738d7fdfe241";
+    private static final String INTERSCROLLER = "f36b84f04ea1ba27";
+
 
     enum AdUnitType {
         BANNER,
@@ -112,13 +116,13 @@ public class MainActivity extends AppCompatActivity {
                 adView = new MaxAdView(MEDIUMRECT, this);
                 break;
             case INFEED:
-                adView = new MaxAdView(INFEED, this);
-                break;
+                createFeedTypeAd(AdUnitType.INFEED, INFEED);
+                return;
             case INTERSTITIAL:
                 loadInterstitialdAd();
                 return;
             case INTERSCROLLER:
-                createInterscrollerAd();
+                createFeedTypeAd(AdUnitType.INTERSCROLLER, INTERSCROLLER);
                 return;
 
         }
@@ -173,8 +177,10 @@ public class MainActivity extends AppCompatActivity {
         interstitialAd.loadAd();
     }
 
-    private void createInterscrollerAd() {
+    private void createFeedTypeAd(AdUnitType type, String adUnitId) {
         Intent intent = new Intent(MainActivity.this, ListActivity.class);
+        intent.putExtra(AD_UNIT_ID, adUnitId);
+        intent.putExtra(AD_UNIT_TYPE, type.toString());
         startActivity(intent);
     }
 

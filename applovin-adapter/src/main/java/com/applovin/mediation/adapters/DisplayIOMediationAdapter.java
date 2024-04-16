@@ -284,7 +284,6 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                 } else if (placement instanceof InterscrollerPlacement) {
                     intersrollerDIOAd = ad;
                     adView = InterscrollerContainer.getAdView(activity);
-                    adView.setId(Integer.parseInt(plcID));
                     InterscrollerContainer interscrollerContainer =
                             ((InterscrollerPlacement) placement).getContainer(activity, adRequestId);
                     try {
@@ -296,6 +295,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                 }
 
                 if (adView != null) {
+                    adView.setId(Integer.parseInt(plcID));
                     ad.setEventListener(
                             new AdEventListener() {
                                 @Override

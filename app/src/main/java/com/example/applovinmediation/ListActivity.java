@@ -1,10 +1,7 @@
 package com.example.applovinmediation;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import static com.example.applovinmediation.MainActivity.AD_UNIT_ID;
+import static com.example.applovinmediation.MainActivity.AD_UNIT_TYPE;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,8 +9,12 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.applovin.mediation.MaxAd;
 import com.applovin.mediation.MaxAdViewAdListener;
@@ -23,9 +24,8 @@ import com.applovin.mediation.ads.MaxAdView;
 import java.util.Objects;
 
 public class ListActivity extends AppCompatActivity {
-//    static final String placementID = "7022";
+    //    static final String placementID = "7022";
     static final String DisplayIO = "DisplayIO";
-    private static final String INTERSCROLLER = "f36b84f04ea1ba27";
 
 
     @Override
@@ -33,7 +33,7 @@ public class ListActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        View adView = createAd();
+        View adView = createAd(getIntent().getStringExtra(AD_UNIT_ID));
         RecyclerView recyclerView = findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new RecyclerView.Adapter() {
@@ -71,11 +71,11 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-    private MaxAdView createAd() {
-        MaxAdView adView = new MaxAdView(INTERSCROLLER, this);
-        adView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                800));
+    private MaxAdView createAd(String adUnitId) {
+        MaxAdView adView = new MaxAdView(adUnitId, this);
+//        adView.setLayoutParams(new FrameLayout.LayoutParams(
+//                FrameLayout.LayoutParams.MATCH_PARENT,
+//                800));
         adView.setGravity(Gravity.CENTER);
         adView.setListener(new MaxAdViewAdListener() {
             @Override
@@ -91,15 +91,17 @@ public class ListActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded(MaxAd ad) {
 
+                MainActivity.AdUnitType adUnitType = MainActivity.AdUnitType.valueOf(getIntent().getStringExtra(AD_UNIT_TYPE));
                 //necessary for displaying IS
-                if (Objects.equals(ad.getNetworkName(), DisplayIO)){
-                    adView.setLayoutParams(new FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.MATCH_PARENT));
+                if (adUnitType == MainActivity.AdUnitType.INTERSCROLLER
+                        && Objects.equals(ad.getNetworkName(), DisplayIO)) {
+                    adView.setLayoutParams(new ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT));
                     String placementID = ad.getNetworkPlacement();
                     View view = adView.findViewById(Integer.parseInt(placementID));
                     view.setLayoutParams(new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.MATCH_PARENT));
+                            RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
                 }
             }
 
