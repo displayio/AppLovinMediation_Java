@@ -22,6 +22,9 @@ import com.applovin.mediation.ads.MaxInterstitialAd;
 import com.applovin.sdk.AppLovinMediationProvider;
 import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
+import com.brandio.ads.Controller;
+import com.brandio.ads.exceptions.DIOError;
+import com.brandio.ads.listeners.SdkInitListener;
 import com.brandio.ads.request.AdRequest;
 import com.brandio.ads.request.AdRequestBuilder;
 
@@ -65,7 +68,18 @@ public class MainActivity extends AppCompatActivity {
             public void onSdkInitialized(AppLovinSdkConfiguration config) {
                 Log.e(TAG, "AppLovin Initialized!");
                 MainActivity.this.showToast("AppLovin Initialized!");
-                setupButtons();
+                Controller.getInstance().init(MainActivity.this, "7729", new SdkInitListener() {
+                    @Override
+                    public void onInit() {
+                        MainActivity.this.showToast("DIO SDK Initialized!");
+                        setupButtons();
+                    }
+
+                    @Override
+                    public void onInitError(DIOError dioError) {
+                        MainActivity.this.showToast("DIO SDK Init Failed!");
+                    }
+                });
             }
         });
     }
