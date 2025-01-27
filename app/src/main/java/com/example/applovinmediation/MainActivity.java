@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.applovin.mediation.MaxAd;
@@ -23,6 +24,7 @@ import com.applovin.sdk.AppLovinMediationProvider;
 import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
 import com.brandio.ads.Controller;
+import com.brandio.ads.ads.AdUnitType;
 import com.brandio.ads.exceptions.DIOError;
 import com.brandio.ads.listeners.SdkInitListener;
 import com.brandio.ads.request.AdRequest;
@@ -40,15 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String MEDIUMRECT = "84aa2c413758352d";
     private static final String INFEED = "ade4738d7fdfe241";
     private static final String INTERSCROLLER = "f36b84f04ea1ba27";
-
-
-    enum AdUnitType {
-        BANNER,
-        MEDIUMRECT,
-        INFEED,
-        INTERSTITIAL,
-        INTERSCROLLER,
-    }
+    private static final String INLINE = "0eb79d222a7fc0b8";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             createAd(AdUnitType.BANNER);
         });
         findViewById(R.id.button_medium_rect).setOnClickListener(view -> {
-            createAd(AdUnitType.MEDIUMRECT);
+            createAd(AdUnitType.MEDIUMRECTANGLE);
         });
         findViewById(R.id.button_infeed).setOnClickListener(view -> {
             createAd(AdUnitType.INFEED);
@@ -100,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.button_interscroller).setOnClickListener(view -> {
             createAd(AdUnitType.INTERSCROLLER);
+        });
+        findViewById(R.id.button_inline).setOnClickListener(view -> {
+            createAd(AdUnitType.INLINE);
         });
 
         findViewById(R.id.button_show_interstitial).setOnClickListener(view -> {
@@ -111,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button_infeed).setEnabled(true);
         findViewById(R.id.button_interstitial).setEnabled(true);
         findViewById(R.id.button_interscroller).setEnabled(true);
+        findViewById(R.id.button_inline).setEnabled(true);
 
     }
 
@@ -123,22 +121,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void createAd(AdUnitType adUnitType) {
         switch (adUnitType) {
+            case INTERSTITIAL:
+                loadInterstitialAd();
+                return;
             case BANNER:
                 adView = new MaxAdView(BANNER, this);
                 break;
-            case MEDIUMRECT:
+            case MEDIUMRECTANGLE:
                 adView = new MaxAdView(MEDIUMRECT, this);
                 break;
             case INFEED:
-                createFeedTypeAd(AdUnitType.INFEED, INFEED);
-                return;
-            case INTERSTITIAL:
-                loadInterstitialdAd();
+                createFeedTypeAd(INFEED);
                 return;
             case INTERSCROLLER:
-                createFeedTypeAd(AdUnitType.INTERSCROLLER, INTERSCROLLER);
+                createFeedTypeAd(INTERSCROLLER);
                 return;
-
+            case INLINE:
+                createFeedTypeAd(INLINE);
+                return;
         }
         adView.setListener(maxAdViewAdListener);
         adView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 800));
@@ -153,85 +153,84 @@ public class MainActivity extends AppCompatActivity {
         adView.loadAd();
     }
 
-    private void loadInterstitialdAd() {
+    private void loadInterstitialAd() {
         interstitialAd = new MaxInterstitialAd(INTERSTITIAL, MainActivity.this);
         interstitialAd.setListener(new MaxAdListener() {
             @Override
-            public void onAdLoaded(MaxAd ad) {
+            public void onAdLoaded(@NonNull MaxAd ad) {
                 showToast("MaxInterstitialAd LOADED!");
                 findViewById(R.id.button_show_interstitial).setEnabled(true);
             }
 
             @Override
-            public void onAdDisplayed(MaxAd ad) {
+            public void onAdDisplayed(@NonNull MaxAd ad) {
 
             }
 
             @Override
-            public void onAdHidden(MaxAd ad) {
+            public void onAdHidden(@NonNull MaxAd ad) {
 
             }
 
             @Override
-            public void onAdClicked(MaxAd ad) {
+            public void onAdClicked(@NonNull MaxAd ad) {
 
             }
 
             @Override
-            public void onAdLoadFailed(String adUnitId, MaxError error) {
+            public void onAdLoadFailed(@NonNull String adUnitId, @NonNull MaxError error) {
                 Log.e(TAG, "MaxInterstitialAd onAdLoadFailed!");
             }
 
             @Override
-            public void onAdDisplayFailed(MaxAd ad, MaxError error) {
+            public void onAdDisplayFailed(@NonNull MaxAd ad, @NonNull MaxError error) {
                 Log.e(TAG, "MaxInterstitialAd onAdDisplayFailed!");
             }
         });
-//        addCustomAdRequestData(interstitialAd, null);
+        addCustomAdRequestData(interstitialAd, null);
         interstitialAd.loadAd();
     }
 
-    private void createFeedTypeAd(AdUnitType type, String adUnitId) {
+    private void createFeedTypeAd( String adUnitId) {
         Intent intent = new Intent(MainActivity.this, ListActivity.class);
         intent.putExtra(AD_UNIT_ID, adUnitId);
-        intent.putExtra(AD_UNIT_TYPE, type.toString());
         startActivity(intent);
     }
 
 
     static MaxAdViewAdListener maxAdViewAdListener = new MaxAdViewAdListener() {
         @Override
-        public void onAdLoaded(MaxAd ad) {
+        public void onAdLoaded(@NonNull MaxAd ad) {
             Log.e(TAG, "onAdLoaded");
         }
 
         @Override
-        public void onAdDisplayed(MaxAd ad) {
+        public void onAdDisplayed(@NonNull MaxAd ad) {
             Log.e(TAG, "onAdDisplayed");
         }
 
         @Override
-        public void onAdHidden(MaxAd ad) {
+        public void onAdHidden(@NonNull MaxAd ad) {
         }
 
         @Override
-        public void onAdClicked(MaxAd ad) {
+        public void onAdClicked(@NonNull MaxAd ad) {
         }
 
         @Override
-        public void onAdLoadFailed(String adUnitId, MaxError error) {
+        public void onAdLoadFailed(@NonNull String adUnitId, @NonNull MaxError error) {
         }
 
         @Override
-        public void onAdDisplayFailed(MaxAd ad, MaxError error) {
+        public void onAdDisplayFailed(@NonNull MaxAd ad, @NonNull MaxError error) {
         }
 
         @Override
-        public void onAdExpanded(MaxAd ad) {
+        public void onAdExpanded(@NonNull MaxAd ad) {
         }
 
         @Override
-        public void onAdCollapsed(MaxAd ad) {
+        public void onAdCollapsed(@NonNull MaxAd ad) {
         }
     };
 

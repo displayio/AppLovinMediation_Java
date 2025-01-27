@@ -25,8 +25,7 @@
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/reserved_for_ad">
+            app:layout_constraintStart_toStartOf="parent">
 
             <Button
                 android:id="@+id/button_banner"
@@ -74,6 +73,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/interscroller"
+                android:enabled="false"/>
+            <Button
+                android:id="@+id/button_inline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/inline"
                 android:enabled="false"/>
 
         </androidx.appcompat.widget.LinearLayoutCompat>

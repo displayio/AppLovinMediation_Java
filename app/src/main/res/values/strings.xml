@@ -6,4 +6,5 @@
     <string name="interstitial">Interstitial</string>
     <string name="show">Show</string>
     <string name="interscroller">Interscroller</string>
+    <string name="inline">Inline</string>
 </resources>

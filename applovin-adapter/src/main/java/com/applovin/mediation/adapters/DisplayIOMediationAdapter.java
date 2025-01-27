@@ -1,8 +1,10 @@
 package com.applovin.mediation.adapters;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.applovin.mediation.MaxAdFormat;
 import com.applovin.mediation.adapter.MaxAdViewAdapter;
@@ -17,19 +19,20 @@ import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkUtils;
 import com.brandio.ads.Controller;
 import com.brandio.ads.ads.Ad;
+import com.brandio.ads.ads.AdUnitType;
 import com.brandio.ads.containers.BannerContainer;
 import com.brandio.ads.containers.InfeedContainer;
+import com.brandio.ads.containers.InlineContainer;
 import com.brandio.ads.containers.InterscrollerContainer;
 import com.brandio.ads.containers.MediumRectangleContainer;
 import com.brandio.ads.exceptions.DIOError;
-import com.brandio.ads.exceptions.DioSdkException;
 import com.brandio.ads.listeners.AdEventListener;
 import com.brandio.ads.listeners.AdRequestListener;
 import com.brandio.ads.listeners.SdkInitListener;
 import com.brandio.ads.placements.BannerPlacement;
 import com.brandio.ads.placements.InfeedPlacement;
+import com.brandio.ads.placements.InlinePlacement;
 import com.brandio.ads.placements.InterscrollerPlacement;
-import com.brandio.ads.placements.InterstitialPlacement;
 import com.brandio.ads.placements.MediumRectanglePlacement;
 import com.brandio.ads.placements.Placement;
 import com.brandio.ads.request.AdRequest;
@@ -45,6 +48,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     private Ad mrectDIOAd;
     private Ad infeedDIOAd;
     private Ad intersrollerDIOAd;
+    private Ad inlineAd;
 
     public DisplayIOMediationAdapter(AppLovinSdk appLovinSdk) {
         super(appLovinSdk);
@@ -69,10 +73,8 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                     null
             );
 
-            AppLovinSdkUtils.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Controller.getInstance().init(activity, appID, new SdkInitListener() {
+            AppLovinSdkUtils.runOnUiThread(() -> Controller.getInstance().init(
+                    activity, appID, new SdkInitListener() {
                         @Override
                         public void onInit() {
                             onCompletionListener.onCompletion(
@@ -88,9 +90,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                     null
                             );
                         }
-                    });
-                }
-            });
+                    }));
         } else {
             onCompletionListener.onCompletion(
                     MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS,
@@ -130,6 +130,10 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
         if (intersrollerDIOAd != null && intersrollerDIOAd.isImpressed()) {
             intersrollerDIOAd.close();
             intersrollerDIOAd = null;
+        }
+        if (inlineAd != null && inlineAd.isImpressed()) {
+            inlineAd.close();
+            inlineAd = null;
         }
     }
 
@@ -226,11 +230,13 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
         final Placement placement;
         try {
             placement = Controller.getInstance().getPlacement(plcID);
-        } catch (DioSdkException e) {
+        } catch (Exception e) {
             Log.e(TAG, "Unexpected error, no placement with ID " + plcID);
             notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
             return;
         }
+
+        AdUnitType placementType = placement.getType();
 
         AdRequest adRequest = null;
         boolean isUsed = false;
@@ -254,7 +260,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             @Override
             public void onAdReceived(Ad ad) {
 
-                if (placement instanceof InterstitialPlacement) {
+                if (placementType == AdUnitType.INTERSTITIAL) {
                     interstitialDIOAd = ad;
                     if (interstitialListener != null) {
                         interstitialListener.onInterstitialAdLoaded();
@@ -262,72 +268,71 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                     return;
                 }
 
-                ViewGroup adView = null;
-                if (placement instanceof BannerPlacement) {
-                    bannerDIOAd = ad;
-                    BannerContainer bannerContainer = ((BannerPlacement) placement)
-                            .getContainer(adRequestId);
-                    adView = BannerContainer.getAdView(activity);
-                    bannerContainer.bindTo(adView);
-                } else if (placement instanceof MediumRectanglePlacement) {
-                    mrectDIOAd = ad;
-                    MediumRectangleContainer mediumRectangleContainer = ((MediumRectanglePlacement) placement)
-                            .getContainer( adRequestId);
-                    adView = BannerContainer.getAdView(activity);
-                    mediumRectangleContainer.bindTo(adView);
-                } else if (placement instanceof InfeedPlacement) {
-                    infeedDIOAd = ad;
-                    adView = InfeedContainer.getAdView(activity);
-                    InfeedContainer infeedContainer =
-                            ((InfeedPlacement) placement).getContainer(adRequestId);
-                    infeedContainer.bindTo(adView);
-                } else if (placement instanceof InterscrollerPlacement) {
-                    intersrollerDIOAd = ad;
-                    adView = InterscrollerContainer.getAdView(activity);
-                    InterscrollerContainer interscrollerContainer =
-                            ((InterscrollerPlacement) placement).getContainer(adRequestId);
-                    try {
-                        interscrollerContainer.bindTo( adView);
-                    } catch (Exception e) {
-                        notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
-                        e.printStackTrace();
-                    }
+                ViewGroup adView = InlineContainer.getAdView(activity);
+                switch (placementType) {
+                    case BANNER:
+                        bannerDIOAd = ad;
+                        BannerContainer bannerContainer = ((BannerPlacement) placement)
+                                .getContainer(adRequestId);
+                        bannerContainer.bindTo(adView);
+                        break;
+                    case MEDIUMRECTANGLE:
+                        mrectDIOAd = ad;
+                        MediumRectangleContainer mediumRectangleContainer = ((MediumRectanglePlacement) placement)
+                                .getContainer(adRequestId);
+                        mediumRectangleContainer.bindTo(adView);
+                        break;
+                    case INFEED:
+                        infeedDIOAd = ad;
+                        InfeedContainer infeedContainer =
+                                ((InfeedPlacement) placement).getContainer(adRequestId);
+                        infeedContainer.bindTo(adView);
+                        break;
+                    case INTERSCROLLER:
+                        intersrollerDIOAd = ad;
+                        InterscrollerContainer interscrollerContainer =
+                                ((InterscrollerPlacement) placement).getContainer(adRequestId);
+                        interscrollerContainer.bindTo(adView);
+                        break;
+                    case INLINE:
+                        inlineAd = ad;
+                        InlineContainer inlineContainer =
+                                ((InlinePlacement) placement).getContainer(adRequestId);
+                        inlineContainer.bindTo(adView);
+                        break;
                 }
 
-                if (adView != null) {
-                    adView.setId(Integer.parseInt(plcID));
-                    ad.setEventListener(
-                            new AdEventListener() {
-                                @Override
-                                public void onShown(Ad ad) {
-                                    inlineAdListener.onAdViewAdDisplayed();
-                                }
-
-                                @Override
-                                public void onFailedToShow(Ad ad) {
-                                    notifyError(inlineAdListener, interstitialListener, MaxAdapterError.AD_DISPLAY_FAILED);
-                                }
-
-                                @Override
-                                public void onClicked(Ad ad) {
-                                    inlineAdListener.onAdViewAdClicked();
-                                }
-
-                                @Override
-                                public void onClosed(Ad ad) {
-                                    inlineAdListener.onAdViewAdHidden();
-                                }
-
-                                @Override
-                                public void onAdCompleted(Ad ad) {
-
-                                }
+                adView.setTag(ad.getAdUnitType());
+                ad.setEventListener(
+                        new AdEventListener() {
+                            @Override
+                            public void onShown(Ad ad) {
+                                inlineAdListener.onAdViewAdDisplayed();
                             }
-                    );
-                    inlineAdListener.onAdViewAdLoaded(adView);
-                } else {
-                    notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
-                }
+
+                            @Override
+                            public void onFailedToShow(Ad ad) {
+                                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.AD_DISPLAY_FAILED);
+                            }
+
+                            @Override
+                            public void onClicked(Ad ad) {
+                                inlineAdListener.onAdViewAdClicked();
+                            }
+
+                            @Override
+                            public void onClosed(Ad ad) {
+                                inlineAdListener.onAdViewAdHidden();
+                            }
+
+                            @Override
+                            public void onAdCompleted(Ad ad) {
+
+                            }
+                        }
+                );
+                inlineAdListener.onAdViewAdLoaded(adView);
+
             }
 
             @Override
