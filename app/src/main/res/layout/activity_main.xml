@@ -7,81 +7,103 @@
     tools:context="com.example.applovinmediation.MainActivity">
 
 
+    <FrameLayout
+        android:id="@+id/reserved_for_ad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/button_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <FrameLayout
-            android:id="@+id/reserved_for_ad"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/button_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/button_banner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@id/button_container"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:enabled="false"
+            android:text="@string/banner" />
+
+        <Button
+            android:id="@+id/button_medium_rect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/medium_rect" />
+
+        <Button
+            android:id="@+id/button_infeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/infeed" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/button_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button_banner"
+                android:id="@+id/button_rewarded"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/banner"
-                android:enabled="false"/>
+                android:layout_marginEnd="10dp"
+                android:enabled="false"
+                android:text="@string/rewarded" />
 
             <Button
-                android:id="@+id/button_medium_rect"
+                android:id="@+id/button_show_rewarded"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/medium_rect"
-                android:enabled="false"/>
-
-            <Button
-                android:id="@+id/button_infeed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/infeed"
-                android:enabled="false"/>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <Button
-                    android:id="@+id/button_interstitial"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/interstitial"
-                    android:layout_marginEnd="10dp"
-                    android:enabled="false"/>
-
-                <Button
-                    android:id="@+id/button_show_interstitial"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/show"
-                    android:enabled="false"/>
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <Button
-                android:id="@+id/button_interscroller"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/interscroller"
-                android:enabled="false"/>
-            <Button
-                android:id="@+id/button_inline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/inline"
-                android:enabled="false"/>
-
+                android:enabled="false"
+                android:text="@string/show" />
         </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_interstitial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:enabled="false"
+                android:text="@string/interstitial" />
+
+            <Button
+                android:id="@+id/button_show_interstitial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:text="@string/show" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <Button
+            android:id="@+id/button_interscroller"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/interscroller" />
+
+        <Button
+            android:id="@+id/button_inline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/inline" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

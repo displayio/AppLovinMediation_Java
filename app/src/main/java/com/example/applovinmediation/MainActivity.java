@@ -18,8 +18,11 @@ import com.applovin.mediation.MaxAd;
 import com.applovin.mediation.MaxAdListener;
 import com.applovin.mediation.MaxAdViewAdListener;
 import com.applovin.mediation.MaxError;
+import com.applovin.mediation.MaxReward;
+import com.applovin.mediation.MaxRewardedAdListener;
 import com.applovin.mediation.ads.MaxAdView;
 import com.applovin.mediation.ads.MaxInterstitialAd;
+import com.applovin.mediation.ads.MaxRewardedAd;
 import com.applovin.sdk.AppLovinMediationProvider;
 import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkConfiguration;
@@ -36,8 +39,10 @@ public class MainActivity extends AppCompatActivity {
     public static final String AD_UNIT_TYPE = "AdUnitType";
     private MaxAdView adView;
     private MaxInterstitialAd interstitialAd;
+    private MaxRewardedAd rewardedAd;
     private ViewGroup rootAdView;
     private static final String INTERSTITIAL = "09d80a95e7f64732";
+    private static final String REWARDED = "f31c504d046cfc08";
     private static final String BANNER = "b1d6cd3a7afb3c18";
     private static final String MEDIUMRECT = "84aa2c413758352d";
     private static final String INFEED = "ade4738d7fdfe241";
@@ -92,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button_interstitial).setOnClickListener(view -> {
             createAd(AdUnitType.INTERSTITIAL);
         });
+        findViewById(R.id.button_rewarded).setOnClickListener(view -> {
+            createAd(AdUnitType.REWARDEDVIDEO);
+        });
         findViewById(R.id.button_interscroller).setOnClickListener(view -> {
             createAd(AdUnitType.INTERSCROLLER);
         });
@@ -102,11 +110,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button_show_interstitial).setOnClickListener(view -> {
             showInterstitial();
         });
+        findViewById(R.id.button_show_rewarded).setOnClickListener(view -> {
+            showRewarded();
+        });
 
         findViewById(R.id.button_banner).setEnabled(true);
         findViewById(R.id.button_medium_rect).setEnabled(true);
         findViewById(R.id.button_infeed).setEnabled(true);
         findViewById(R.id.button_interstitial).setEnabled(true);
+        findViewById(R.id.button_rewarded).setEnabled(true);
         findViewById(R.id.button_interscroller).setEnabled(true);
         findViewById(R.id.button_inline).setEnabled(true);
 
@@ -114,8 +126,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void showInterstitial() {
         if (interstitialAd.isReady()) {
-            interstitialAd.showAd();
+            interstitialAd.showAd(this);
             findViewById(R.id.button_show_interstitial).setEnabled(false);
+        }
+    }
+
+    private void showRewarded() {
+        if (rewardedAd.isReady()) {
+            rewardedAd.showAd(this);
+            findViewById(R.id.button_show_rewarded).setEnabled(false);
         }
     }
 
@@ -123,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
         switch (adUnitType) {
             case INTERSTITIAL:
                 loadInterstitialAd();
+                return;
+            case REWARDEDVIDEO:
+                loadRewardedAd();
                 return;
             case BANNER:
                 adView = new MaxAdView(BANNER, this);
@@ -149,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         rootAdView.removeAllViews();
         rootAdView.addView(adView);
 
-        addCustomAdRequestData(null, adView);
+//        addCustomAdRequestData(null, null, adView);
         adView.loadAd();
     }
 
@@ -187,11 +209,57 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "MaxInterstitialAd onAdDisplayFailed!");
             }
         });
-        addCustomAdRequestData(interstitialAd, null);
+//        addCustomAdRequestData(interstitialAd, null, null);
         interstitialAd.loadAd();
     }
 
-    private void createFeedTypeAd( String adUnitId) {
+    private void loadRewardedAd() {
+        rewardedAd = MaxRewardedAd.getInstance(REWARDED, getApplicationContext());
+        rewardedAd.setListener(new MaxRewardedAdListener() {
+
+            @Override
+            public void onAdLoaded(@NonNull MaxAd maxAd) {
+                showToast("MaxRewardedAd LOADED!");
+                findViewById(R.id.button_show_rewarded).setEnabled(true);
+            }
+
+            @Override
+            public void onAdDisplayed(@NonNull MaxAd maxAd) {
+
+            }
+
+            @Override
+            public void onAdHidden(@NonNull MaxAd maxAd) {
+
+            }
+
+            @Override
+            public void onAdClicked(@NonNull MaxAd maxAd) {
+
+            }
+
+            @Override
+            public void onAdLoadFailed(@NonNull String s, @NonNull MaxError maxError) {
+                Log.e(TAG, "MaxRewardedAd onAdLoadFailed!");
+            }
+
+            @Override
+            public void onAdDisplayFailed(@NonNull MaxAd maxAd, @NonNull MaxError maxError) {
+                Log.e(TAG, "MaxRewardedAd onAdDisplayFailed!");
+            }
+
+            @Override
+            public void onUserRewarded(@NonNull MaxAd maxAd, @NonNull MaxReward maxReward) {
+                Log.e(TAG, "MaxRewardedAd onUserRewarded: "
+                        + maxReward.getAmount() + " of: " + maxReward.getLabel());
+            }
+        });
+
+        addCustomAdRequestData(null, rewardedAd, null);
+        rewardedAd.loadAd();
+    }
+
+    private void createFeedTypeAd(String adUnitId) {
         Intent intent = new Intent(MainActivity.this, ListActivity.class);
         intent.putExtra(AD_UNIT_ID, adUnitId);
         startActivity(intent);
@@ -240,13 +308,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // here is the example how to add customized ad request to Display.io network
-    protected static void addCustomAdRequestData(MaxInterstitialAd interstitialAd, MaxAdView maxAdView) {
+    protected static void addCustomAdRequestData(MaxInterstitialAd interstitialAd,
+                                                 MaxRewardedAd rewardedAd,
+                                                 MaxAdView maxAdView) {
         AdRequest adRequest = new AdRequestBuilder(new AdRequest())
-                .setBidFloor(55.8)
+                .setBidFloor(15.8)
                 .setUserId("USER_123")
                 .build();
         if (interstitialAd != null) {
             interstitialAd.setLocalExtraParameter(DIO_AD_REQUEST, adRequest);
+        }
+        if (rewardedAd != null) {
+            rewardedAd.setLocalExtraParameter(DIO_AD_REQUEST, adRequest);
         }
         if (maxAdView != null) {
             maxAdView.setLocalExtraParameter(DIO_AD_REQUEST, adRequest);

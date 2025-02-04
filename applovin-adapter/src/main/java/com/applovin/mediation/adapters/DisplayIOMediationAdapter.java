@@ -1,18 +1,19 @@
 package com.applovin.mediation.adapters;
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
 import com.applovin.mediation.MaxAdFormat;
+import com.applovin.mediation.MaxReward;
 import com.applovin.mediation.adapter.MaxAdViewAdapter;
 import com.applovin.mediation.adapter.MaxAdapter;
 import com.applovin.mediation.adapter.MaxAdapterError;
 import com.applovin.mediation.adapter.MaxInterstitialAdapter;
+import com.applovin.mediation.adapter.MaxRewardedAdapter;
 import com.applovin.mediation.adapter.listeners.MaxAdViewAdapterListener;
 import com.applovin.mediation.adapter.listeners.MaxInterstitialAdapterListener;
+import com.applovin.mediation.adapter.listeners.MaxRewardedAdapterListener;
 import com.applovin.mediation.adapter.parameters.MaxAdapterInitializationParameters;
 import com.applovin.mediation.adapter.parameters.MaxAdapterResponseParameters;
 import com.applovin.sdk.AppLovinSdk;
@@ -40,10 +41,11 @@ import com.brandio.ads.request.AdRequestBuilder;
 import com.brandio.ads.request.MediationPlatform;
 
 public class DisplayIOMediationAdapter extends MediationAdapterBase implements MaxAdViewAdapter,
-        MaxInterstitialAdapter {
+        MaxInterstitialAdapter, MaxRewardedAdapter {
     public static final String TAG = "DioAdapter";
     public static final String DIO_AD_REQUEST = "dioAdRequest";
     private Ad interstitialDIOAd;
+    private Ad rewardedDIOAd;
     private Ad bannerDIOAd;
     private Ad mrectDIOAd;
     private Ad infeedDIOAd;
@@ -113,7 +115,10 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     @Override
     public void onDestroy() {
         if (interstitialDIOAd != null && interstitialDIOAd.isImpressed()) {
-            interstitialDIOAd = null; // interstitial ads closed automatically
+            interstitialDIOAd = null;
+        }
+        if (rewardedDIOAd != null && rewardedDIOAd.isImpressed()) {
+            rewardedDIOAd = null;
         }
         if (bannerDIOAd != null && bannerDIOAd.isImpressed()) {
             bannerDIOAd.close();
@@ -153,6 +158,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                 maxAdapterResponseParameters,
                 maxAdViewAdapterListener,
                 null,
+                null,
                 activity
         );
     }
@@ -170,6 +176,25 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                 maxAdapterResponseParameters,
                 null,
                 maxInterstitialAdapterListener,
+                null,
+                activity
+        );
+    }
+
+    //rewarded video ads
+    @Override
+    public void loadRewardedAd(MaxAdapterResponseParameters maxAdapterResponseParameters,
+                               Activity activity,
+                               MaxRewardedAdapterListener maxRewardedAdapterListener) {
+        if (!isReadyToRequestAd(activity)) {
+            maxRewardedAdapterListener.onRewardedAdLoadFailed(MaxAdapterError.UNSPECIFIED);
+            return;
+        }
+        requestAndLoadDisplayIOAd(
+                maxAdapterResponseParameters,
+                null,
+                null,
+                maxRewardedAdapterListener,
                 activity
         );
     }
@@ -205,12 +230,83 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         @Override
                         public void onAdCompleted(Ad ad) {
                         }
+
+                        @Override
+                        public void onAdStarted(Ad ad) {
+                        }
+
+                        @Override
+                        public void onSoundToggle(boolean isEnabled) {
+                        }
                     }
             );
 
-            interstitialDIOAd.showAd(activity);
+            activity.runOnUiThread(() -> interstitialDIOAd.showAd(activity));
         } else {
             maxInterstitialAdapterListener.onInterstitialAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
+        }
+    }
+
+    //rewarded video ads
+    @Override
+    public void showRewardedAd(MaxAdapterResponseParameters maxAdapterResponseParameters,
+                               Activity activity,
+                               MaxRewardedAdapterListener maxRewardedAdapterListener) {
+        if (rewardedDIOAd != null) {
+            rewardedDIOAd.setEventListener(
+                    new AdEventListener() {
+                        @Override
+                        public void onShown(Ad ad) {
+                            maxRewardedAdapterListener.onRewardedAdDisplayed();
+                        }
+
+                        @Override
+                        public void onFailedToShow(Ad ad) {
+                            maxRewardedAdapterListener.onRewardedAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
+                        }
+
+                        @Override
+                        public void onClicked(Ad ad) {
+                            maxRewardedAdapterListener.onRewardedAdClicked();
+                        }
+
+                        @Override
+                        public void onClosed(Ad ad) {
+                            maxRewardedAdapterListener.onRewardedAdHidden();
+                        }
+
+                        @Override
+                        public void onAdCompleted(Ad ad) {
+                            MaxReward reward = getReward();
+                            if (reward == null) {
+                                reward = new MaxReward() {
+                                    @Override
+                                    public String getLabel() {
+                                        return MaxReward.DEFAULT_LABEL;
+                                    }
+
+                                    @Override
+                                    public int getAmount() {
+                                        return MaxReward.DEFAULT_AMOUNT;
+                                    }
+                                };
+                            }
+                            maxRewardedAdapterListener.onUserRewarded(reward);
+                        }
+
+                        @Override
+                        public void onAdStarted(Ad ad) {
+                        }
+
+                        @Override
+                        public void onSoundToggle(boolean isEnabled) {
+                        }
+                    }
+            );
+
+            activity.runOnUiThread(() -> rewardedDIOAd.showAd(activity));
+        } else {
+            maxRewardedAdapterListener.onRewardedAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
         }
     }
 
@@ -218,12 +314,13 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             MaxAdapterResponseParameters maxAdapterResponseParameters,
             MaxAdViewAdapterListener inlineAdListener,
             MaxInterstitialAdapterListener interstitialListener,
+            MaxRewardedAdapterListener rewardedListener,
             Activity activity
     ) {
         String plcID = maxAdapterResponseParameters.getThirdPartyAdPlacementId();
         if (plcID == null || plcID.isEmpty()) {
             Log.e(TAG, "Error, placement ID missed, set up placement ID on your AppLovin dashboard");
-            notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
+            notifyError(inlineAdListener, interstitialListener, rewardedListener, MaxAdapterError.INTERNAL_ERROR);
             return;
         }
 
@@ -232,38 +329,46 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             placement = Controller.getInstance().getPlacement(plcID);
         } catch (Exception e) {
             Log.e(TAG, "Unexpected error, no placement with ID " + plcID);
-            notifyError(inlineAdListener, interstitialListener, MaxAdapterError.INTERNAL_ERROR);
+            notifyError(inlineAdListener, interstitialListener, rewardedListener, MaxAdapterError.INTERNAL_ERROR);
             return;
         }
 
         AdUnitType placementType = placement.getType();
+        AdRequest adRequest = (AdRequest) maxAdapterResponseParameters.getLocalExtraParameters().get(DIO_AD_REQUEST);
 
-        AdRequest adRequest = null;
         boolean isUsed = false;
-
-        try {
-            adRequest = (AdRequest) maxAdapterResponseParameters.getLocalExtraParameters().get(DIO_AD_REQUEST);
-            isUsed = placement.getAdRequestById(adRequest.getId()) != null;
-        } catch (Exception ignored) {
+        if (adRequest != null) {
+            try {
+                isUsed = placement.getAdRequestById(adRequest.getId()) != null || adRequest.wasRequested();
+            } catch (Exception ignored) {
+                Log.e(TAG, "Exception ", ignored);
+            }
         }
 
-        if (adRequest != null && !isUsed) {
-            adRequest = new AdRequestBuilder(adRequest)
-                    .setMediationPlatform(MediationPlatform.APPLOVIN).build();
-            placement.addAdRequest(adRequest);
-        } else {
+        if (adRequest == null || isUsed) {
             adRequest = placement.newAdRequestBuilder()
-                    .setMediationPlatform(MediationPlatform.APPLOVIN).build();
+                    .setMediationPlatform(MediationPlatform.APPLOVIN)
+                    .build();
+        } else {
+            adRequest = new AdRequestBuilder(adRequest)
+                    .setMediationPlatform(MediationPlatform.APPLOVIN)
+                    .build();
+            placement.addAdRequest(adRequest);
         }
+
         final String adRequestId = adRequest.getId();
         adRequest.setAdRequestListener(new AdRequestListener() {
             @Override
             public void onAdReceived(Ad ad) {
 
                 if (placementType == AdUnitType.INTERSTITIAL) {
-                    interstitialDIOAd = ad;
                     if (interstitialListener != null) {
+                        interstitialDIOAd = ad;
                         interstitialListener.onInterstitialAdLoaded();
+                    }
+                    if (rewardedListener != null) {
+                        rewardedDIOAd = ad;
+                        rewardedListener.onRewardedAdLoaded();
                     }
                     return;
                 }
@@ -312,7 +417,10 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                             @Override
                             public void onFailedToShow(Ad ad) {
-                                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.AD_DISPLAY_FAILED);
+                                notifyError(inlineAdListener,
+                                        interstitialListener,
+                                        rewardedListener,
+                                        MaxAdapterError.AD_DISPLAY_FAILED);
                             }
 
                             @Override
@@ -329,6 +437,14 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                             public void onAdCompleted(Ad ad) {
 
                             }
+
+                            @Override
+                            public void onAdStarted(Ad ad) {
+                            }
+
+                            @Override
+                            public void onSoundToggle(boolean isEnabled) {
+                            }
                         }
                 );
                 inlineAdListener.onAdViewAdLoaded(adView);
@@ -338,13 +454,13 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             @Override
             public void onNoAds(DIOError dioError) {
                 Log.e(TAG, "No Ads for placement " + plcID);
-                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
+                notifyError(inlineAdListener, interstitialListener, rewardedListener, MaxAdapterError.NO_FILL);
             }
 
             @Override
             public void onFailedToLoad(DIOError dioError) {
                 Log.e(TAG, "Failed to load ad for placement " + plcID);
-                notifyError(inlineAdListener, interstitialListener, MaxAdapterError.NO_FILL);
+                notifyError(inlineAdListener, interstitialListener, rewardedListener, MaxAdapterError.NO_FILL);
             }
         });
         adRequest.requestAd();
@@ -352,12 +468,16 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
     private void notifyError(MaxAdViewAdapterListener inlineAdListener,
                              MaxInterstitialAdapterListener interstitialListener,
+                             MaxRewardedAdapterListener rewardedListener,
                              MaxAdapterError error) {
         if (inlineAdListener != null) {
             inlineAdListener.onAdViewAdLoadFailed(error);
         }
         if (interstitialListener != null) {
             interstitialListener.onInterstitialAdLoadFailed(error);
+        }
+        if (rewardedListener != null) {
+            rewardedListener.onRewardedAdDisplayFailed(error);
         }
     }
 
