@@ -119,7 +119,7 @@ public class ListActivity extends AppCompatActivity {
 
             }
         });
-        MainActivity.addCustomAdRequestData(null, null, adView);
+//        MainActivity.addCustomAdRequestData(null, null, adView);
         adView.loadAd();
         return adView;
     }

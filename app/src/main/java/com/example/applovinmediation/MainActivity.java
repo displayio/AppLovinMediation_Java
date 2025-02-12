@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        addCustomAdRequestData(null, rewardedAd, null);
+//        addCustomAdRequestData(null, rewardedAd, null);
         rewardedAd.loadAd();
     }
 
