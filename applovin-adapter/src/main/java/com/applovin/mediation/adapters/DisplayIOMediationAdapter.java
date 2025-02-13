@@ -253,6 +253,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                                Activity activity,
                                MaxRewardedAdapterListener maxRewardedAdapterListener) {
         if (rewardedDIOAd != null) {
+            configureReward(maxAdapterResponseParameters);
             rewardedDIOAd.setEventListener(
                     new AdEventListener() {
                         @Override
