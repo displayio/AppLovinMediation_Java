@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.example.applovinmediation"
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
@@ -39,5 +39,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation 'com.applovin:applovin-sdk:12.3.0'
-    implementation 'com.brandio.ads:sdk:5.5.0'
+    implementation 'com.brandio.ads:sdk:5.5.3'
 }

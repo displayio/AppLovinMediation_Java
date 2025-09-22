@@ -213,7 +213,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         }
 
                         @Override
-                        public void onFailedToShow(Ad ad) {
+                        public void onFailedToShow(Ad ad, DIOError dioError) {
                             maxInterstitialAdapterListener.onInterstitialAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
                         }
 
@@ -262,7 +262,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         }
 
                         @Override
-                        public void onFailedToShow(Ad ad) {
+                        public void onFailedToShow(Ad ad, DIOError dioError) {
                             maxRewardedAdapterListener.onRewardedAdDisplayFailed(MaxAdapterError.AD_DISPLAY_FAILED);
                         }
 
@@ -417,7 +417,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                             }
 
                             @Override
-                            public void onFailedToShow(Ad ad) {
+                            public void onFailedToShow(Ad ad, DIOError dioError) {
                                 notifyError(inlineAdListener,
                                         interstitialListener,
                                         rewardedListener,
