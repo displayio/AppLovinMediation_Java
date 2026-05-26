@@ -30,11 +30,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="applovin.sdk.key"
-            android:value="Em8gDrZPoITWOz7bpmbygQ4zNdahVTBLK2bKsKzA7ZTgDproADG9WTuqRiMLeof9RTkTqzcTdXR55xGHNuMRDp" />
-<!--            android:value="TRKEkXAdndK_nN68J91ihgGf3TPdRO0qorfrT5bt9AKIq-b1Mmw0nWNwb2EmP1ixtox8pPTbz_zukquG6wsMx_" />-->
     </application>
 
 </manifest>

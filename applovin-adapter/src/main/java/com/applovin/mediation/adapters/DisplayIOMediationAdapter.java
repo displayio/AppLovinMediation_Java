@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.ViewGroup;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import com.applovin.mediation.MaxAdFormat;
 import com.applovin.mediation.MaxReward;
 import com.applovin.mediation.adapter.MaxAdViewAdapter;
@@ -38,19 +41,13 @@ import com.brandio.ads.placements.MediumRectanglePlacement;
 import com.brandio.ads.placements.Placement;
 import com.brandio.ads.request.AdRequest;
 import com.brandio.ads.request.AdRequestBuilder;
-import com.brandio.ads.request.MediationPlatform;
 
 public class DisplayIOMediationAdapter extends MediationAdapterBase implements MaxAdViewAdapter,
         MaxInterstitialAdapter, MaxRewardedAdapter {
     public static final String TAG = "DioAdapter";
     public static final String DIO_AD_REQUEST = "dioAdRequest";
-    private Ad interstitialDIOAd;
-    private Ad rewardedDIOAd;
-    private Ad bannerDIOAd;
-    private Ad mrectDIOAd;
-    private Ad infeedDIOAd;
-    private Ad intersrollerDIOAd;
-    private Ad inlineAd;
+    private static final String SERVER_PARAM_APP_ID = "app_id";
+    private final Map<AdUnitType, Ad> loadedAds = new EnumMap<>(AdUnitType.class);
 
     public DisplayIOMediationAdapter(AppLovinSdk appLovinSdk) {
         super(appLovinSdk);
@@ -60,7 +57,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     public void initialize(MaxAdapterInitializationParameters maxAdapterInitializationParameters,
                            Activity activity,
                            OnCompletionListener onCompletionListener) {
-        String appID = maxAdapterInitializationParameters.getServerParameters().getString("app_id");
+        String appID = maxAdapterInitializationParameters.getServerParameters().getString(SERVER_PARAM_APP_ID);
 
         if (appID == null) {
             onCompletionListener.onCompletion(
@@ -114,31 +111,13 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
     @Override
     public void onDestroy() {
-        if (interstitialDIOAd != null && interstitialDIOAd.isImpressed()) {
-            interstitialDIOAd = null;
-        }
-        if (rewardedDIOAd != null && rewardedDIOAd.isImpressed()) {
-            rewardedDIOAd = null;
-        }
-        if (bannerDIOAd != null && bannerDIOAd.isImpressed()) {
-            bannerDIOAd.close();
-            bannerDIOAd = null;
-        }
-        if (mrectDIOAd != null && mrectDIOAd.isImpressed()) {
-            mrectDIOAd.close();
-            mrectDIOAd = null;
-        }
-        if (infeedDIOAd != null && infeedDIOAd.isImpressed()) {
-            infeedDIOAd.close();
-            infeedDIOAd = null;
-        }
-        if (intersrollerDIOAd != null && intersrollerDIOAd.isImpressed()) {
-            intersrollerDIOAd.close();
-            intersrollerDIOAd = null;
-        }
-        if (inlineAd != null && inlineAd.isImpressed()) {
-            inlineAd.close();
-            inlineAd = null;
+        for (AdUnitType type : AdUnitType.values()) {
+            Ad ad = loadedAds.get(type);
+            if (ad == null || !ad.isImpressed()) continue;
+            if (type != AdUnitType.INTERSTITIAL && type != AdUnitType.REWARDEDVIDEO) {
+                ad.close();
+            }
+            loadedAds.remove(type);
         }
     }
 
@@ -204,6 +183,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     public void showInterstitialAd(MaxAdapterResponseParameters maxAdapterResponseParameters,
                                    Activity activity, MaxInterstitialAdapterListener
                                            maxInterstitialAdapterListener) {
+        final Ad interstitialDIOAd = loadedAds.get(AdUnitType.INTERSTITIAL);
         if (interstitialDIOAd != null) {
             interstitialDIOAd.setEventListener(
                     new AdEventListener() {
@@ -252,6 +232,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
     public void showRewardedAd(MaxAdapterResponseParameters maxAdapterResponseParameters,
                                Activity activity,
                                MaxRewardedAdapterListener maxRewardedAdapterListener) {
+        final Ad rewardedDIOAd = loadedAds.get(AdUnitType.REWARDEDVIDEO);
         if (rewardedDIOAd != null) {
             configureReward(maxAdapterResponseParameters);
             rewardedDIOAd.setEventListener(
@@ -341,18 +322,16 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
         if (adRequest != null) {
             try {
                 isUsed = placement.getAdRequestById(adRequest.getId()) != null || adRequest.wasRequested();
-            } catch (Exception ignored) {
-                Log.e(TAG, "Exception ", ignored);
+            } catch (Exception e) {
+                Log.e(TAG, "Exception ", e);
             }
         }
 
         if (adRequest == null || isUsed) {
             adRequest = placement.newAdRequestBuilder()
-                    .setMediationPlatform(MediationPlatform.APPLOVIN)
                     .build();
         } else {
             adRequest = new AdRequestBuilder(adRequest)
-                    .setMediationPlatform(MediationPlatform.APPLOVIN)
                     .build();
             placement.addAdRequest(adRequest);
         }
@@ -364,44 +343,40 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                 if (placementType == AdUnitType.INTERSTITIAL) {
                     if (interstitialListener != null) {
-                        interstitialDIOAd = ad;
+                        loadedAds.put(AdUnitType.INTERSTITIAL, ad);
                         interstitialListener.onInterstitialAdLoaded();
                     }
                     if (rewardedListener != null) {
-                        rewardedDIOAd = ad;
+                        loadedAds.put(AdUnitType.REWARDEDVIDEO, ad);
                         rewardedListener.onRewardedAdLoaded();
                     }
                     return;
                 }
 
                 ViewGroup adView = InlineContainer.getAdView(activity);
+                loadedAds.put(placementType, ad);
                 switch (placementType) {
                     case BANNER:
-                        bannerDIOAd = ad;
                         BannerContainer bannerContainer = ((BannerPlacement) placement)
                                 .getContainer(adRequestId);
                         bannerContainer.bindTo(adView);
                         break;
                     case MEDIUMRECTANGLE:
-                        mrectDIOAd = ad;
                         MediumRectangleContainer mediumRectangleContainer = ((MediumRectanglePlacement) placement)
                                 .getContainer(adRequestId);
                         mediumRectangleContainer.bindTo(adView);
                         break;
                     case INFEED:
-                        infeedDIOAd = ad;
                         InfeedContainer infeedContainer =
                                 ((InfeedPlacement) placement).getContainer(adRequestId);
                         infeedContainer.bindTo(adView);
                         break;
                     case INTERSCROLLER:
-                        intersrollerDIOAd = ad;
                         InterscrollerContainer interscrollerContainer =
                                 ((InterscrollerPlacement) placement).getContainer(adRequestId);
                         interscrollerContainer.bindTo(adView);
                         break;
                     case INLINE:
-                        inlineAd = ad;
                         InlineContainer inlineContainer =
                                 ((InlinePlacement) placement).getContainer(adRequestId);
                         inlineContainer.bindTo(adView);
@@ -413,7 +388,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                         new AdEventListener() {
                             @Override
                             public void onShown(Ad ad) {
-                                inlineAdListener.onAdViewAdDisplayed();
+                                if (inlineAdListener != null) inlineAdListener.onAdViewAdDisplayed();
                             }
 
                             @Override
@@ -426,12 +401,12 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
 
                             @Override
                             public void onClicked(Ad ad) {
-                                inlineAdListener.onAdViewAdClicked();
+                                if (inlineAdListener != null) inlineAdListener.onAdViewAdClicked();
                             }
 
                             @Override
                             public void onClosed(Ad ad) {
-                                inlineAdListener.onAdViewAdHidden();
+                                if (inlineAdListener != null) inlineAdListener.onAdViewAdHidden();
                             }
 
                             @Override
@@ -448,7 +423,9 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
                             }
                         }
                 );
-                inlineAdListener.onAdViewAdLoaded(adView);
+                if (inlineAdListener != null) {
+                    inlineAdListener.onAdViewAdLoaded(adView);
+                }
 
             }
 
@@ -478,7 +455,7 @@ public class DisplayIOMediationAdapter extends MediationAdapterBase implements M
             interstitialListener.onInterstitialAdLoadFailed(error);
         }
         if (rewardedListener != null) {
-            rewardedListener.onRewardedAdDisplayFailed(error);
+            rewardedListener.onRewardedAdLoadFailed(error);
         }
     }
 

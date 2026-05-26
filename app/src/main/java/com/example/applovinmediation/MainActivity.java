@@ -25,7 +25,7 @@ import com.applovin.mediation.ads.MaxInterstitialAd;
 import com.applovin.mediation.ads.MaxRewardedAd;
 import com.applovin.sdk.AppLovinMediationProvider;
 import com.applovin.sdk.AppLovinSdk;
-import com.applovin.sdk.AppLovinSdkConfiguration;
+import com.applovin.sdk.AppLovinSdkInitializationConfiguration;
 import com.brandio.ads.Controller;
 import com.brandio.ads.ads.AdUnitType;
 import com.brandio.ads.exceptions.DIOError;
@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
     public static final String AD_UNIT_ID = "AdUnitId";
     public static final String AD_UNIT_TYPE = "AdUnitType";
+    private static final String SDK_KEY = "Em8gDrZPoITWOz7bpmbygQ4zNdahVTBLK2bKsKzA7ZTgDproADG9WTuqRiMLeof9RTkTqzcTdXR55xGHNuMRDp";
+    private static final String DIO_APP_ID = "7729";
     private MaxAdView adView;
     private MaxInterstitialAd interstitialAd;
     private MaxRewardedAd rewardedAd;
@@ -60,26 +62,25 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initAppLovinSdk() {
-        // Make sure to set the mediation provider value to "max" to ensure proper functionality
-        AppLovinSdk.getInstance(this).setMediationProvider(AppLovinMediationProvider.MAX);
-        AppLovinSdk.getInstance(this).initializeSdk(new AppLovinSdk.SdkInitializationListener() {
-            @Override
-            public void onSdkInitialized(AppLovinSdkConfiguration config) {
-                Log.e(TAG, "AppLovin Initialized!");
-                MainActivity.this.showToast("AppLovin Initialized!");
-                Controller.getInstance().init(MainActivity.this, "7729", new SdkInitListener() {
-                    @Override
-                    public void onInit() {
-                        MainActivity.this.showToast("DIO SDK Initialized!");
-                        setupButtons();
-                    }
+        AppLovinSdkInitializationConfiguration initConfig =
+                AppLovinSdkInitializationConfiguration.builder(SDK_KEY)
+                        .setMediationProvider(AppLovinMediationProvider.MAX)
+                        .build();
+        AppLovinSdk.getInstance(this).initialize(initConfig, config -> {
+            Log.e(TAG, "AppLovin Initialized!");
+            MainActivity.this.showToast("AppLovin Initialized!");
+            Controller.getInstance().init(MainActivity.this, DIO_APP_ID, new SdkInitListener() {
+                @Override
+                public void onInit() {
+                    MainActivity.this.showToast("DIO SDK Initialized!");
+                    setupButtons();
+                }
 
-                    @Override
-                    public void onInitError(DIOError dioError) {
-                        MainActivity.this.showToast("DIO SDK Init Failed!");
-                    }
-                });
-            }
+                @Override
+                public void onInitError(DIOError dioError) {
+                    MainActivity.this.showToast("DIO SDK Init Failed!");
+                }
+            });
         });
     }
 
